@@ -88,6 +88,7 @@ conn.execute(
 conn.execute(
     "ALTER TABLE canciones_con_mas_semanas_en_el_numero_uno ADD COLUMN continente TEXT"
 )
+conn.commit()
 conn.execute(
     """
     UPDATE canciones_con_mas_semanas_en_el_numero_uno
@@ -110,9 +111,43 @@ conn.execute(
     END;
     """
 )
+conn.execute(
+    """
+    UPDATE canciones_con_mas_semanas_en_el_numero_uno
+    SET idioma = CASE
+        WHEN titulo LIKE 'Lambada%' THEN 'Portugués'
+        WHEN titulo LIKE 'Ai Se Eu%' THEN 'Portugués'
+        WHEN titulo LIKE 'Voyage%' THEN 'Francés'
+        WHEN titulo LIKE 'Waka%' THEN 'Inglés'
+        WHEN titulo LIKE 'You''re%' THEN 'Inglés'
+        WHEN titulo LIKE 'Gimme%' THEN 'Inglés'
+        WHEN titulo LIKE 'On%' THEN 'Inglés'
+        WHEN titulo LIKE 'Candle%' THEN 'Inglés'
+        WHEN titulo LIKE 'Mambo%' THEN 'Inglés'
+        WHEN titulo LIKE 'Always%' THEN 'Inglés'
+        WHEN titulo LIKE 'Infinity%' THEN 'Inglés'
+        WHEN titulo LIKE 'The Final%' THEN 'Inglés'
+        WHEN titulo LIKE 'Sorry%' THEN 'Inglés'
+        ELSE 'Español'
+    END;
+    """)
 conn.commit()
 conn.close()
 
-print("Primeras canciones insertadas:")
-for fila in datos[:5]:
-    print(fila)
+#Canción más antigua de la lista
+
+def Cancion_mas_antigua():
+    conn = sqlite3.connect("Top_Canciones_Numero_uno_en_españa.db")
+    conn.row_factory = sqlite3.Row  # Acceso a columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM canciones_con_mas_semanas_en_el_numero_uno ORDER BY año ASC LIMIT 1")
+    resultado = cursor.fetchone()
+    conn.close()
+
+    print(f"""La canción más antigua en este top es: {resultado['titulo']}, con {resultado['semanas']} semanas en el top.
+Autor: {resultado['interprete']}, que es de {resultado['pais']}, {resultado['continente']}
+Año: {resultado['año']}
+Idioma principal: {resultado['idioma']}
+""")
+
+Cancion_mas_antigua()
