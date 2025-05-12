@@ -10,7 +10,7 @@ while True:
         response = requests.get(
             "https://es.wikipedia.org/wiki/Anexo:Sencillos_n%C3%BAmero_uno_en_Espa%C3%B1a#Canciones_con_m%C3%A1s_semanas_en_el_n%C3%BAmero_uno"
         )
-        time.sleep(5)
+        time.sleep(2)
         break
     except Exception as e:
         print("Ha ocurrido un error al conectarse", e)
@@ -149,5 +149,75 @@ Autor: {resultado['interprete']}, que es de {resultado['pais']}, {resultado['con
 Año: {resultado['año']}
 Idioma principal: {resultado['idioma']}
 """)
+    
+#¿Qué artista aparece más veces en esta lista?
+def Artista_con_mas_apariciones():
+    conn = sqlite3.connect("Top_Canciones_Numero_uno_en_españa.db")
+    conn.row_factory = sqlite3.Row  # Acceso a columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT interprete, count(*) AS apariciones
+    FROM canciones_con_mas_semanas_en_el_numero_uno
+    GROUP BY interprete 
+    ORDER BY apariciones DESC LIMIT 1""")
+    resultado = cursor.fetchone()
+    conn.close()
+    print(f"El artista que más aparece en esta lista es {resultado['interprete']}, con {resultado['apariciones']} veces.")
 
-Cancion_mas_antigua()
+#¿Qué país tiene más artistas en esta lista?
+
+def Pais_con_mas_apariciones():
+    conn = sqlite3.connect("Top_Canciones_Numero_uno_en_españa.db")
+    conn.row_factory = sqlite3.Row  # Acceso a columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT pais, COUNT(DISTINCT interprete) AS total_artistas_pais
+    FROM canciones_con_mas_semanas_en_el_numero_uno
+    GROUP BY pais 
+    ORDER BY total_artistas_pais DESC LIMIT 1""")
+    resultado = cursor.fetchone()
+    conn.close()
+    print(f"El país que más aparece en esta lista es {resultado['pais']}, con {resultado['total_artistas_pais']} artistas.")
+
+#¿Cuantas canciones distintas hay por cada idioma?
+def Canciones_por_idioma():
+    conn = sqlite3.connect("Top_Canciones_Numero_uno_en_españa.db")
+    conn.row_factory = sqlite3.Row  # Acceso a columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT idioma, COUNT(DISTINCT titulo) AS total_canciones_idioma
+    FROM canciones_con_mas_semanas_en_el_numero_uno
+    GROUP BY idioma 
+    ORDER BY total_canciones_idioma DESC""")
+    resultado = cursor.fetchall()
+    conn.close()
+    for linea in resultado:
+        print(f"{linea['idioma']}, con {linea['total_canciones_idioma']} canciones.")
+
+#¿Cuál es el continente con más apariciones en la lista?
+def Continente_con_mas_apariciones():
+    conn = sqlite3.connect("Top_Canciones_Numero_uno_en_españa.db")
+    conn.row_factory = sqlite3.Row  # Acceso a columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT continente, count(*) AS continente_apariciones
+    FROM canciones_con_mas_semanas_en_el_numero_uno
+    GROUP BY continente
+    ORDER BY continente_apariciones DESC LIMIT 1""")
+    resultado = cursor.fetchone()
+    conn.close()
+    print(f"El continente que más aparece en esta lista es {resultado['continente']}, con {resultado['continente_apariciones']} veces.")
+
+#¿Qué canción ha estado más % de tiempo al año como número 1?
+def Cancion_con_porcentaje_de_apariciones():
+    conn = sqlite3.connect("Top_Canciones_Numero_uno_en_españa.db")
+    conn.row_factory = sqlite3.Row  # Acceso a columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT titulo, (semanas/0.52) AS porcentaje_anual
+    FROM canciones_con_mas_semanas_en_el_numero_uno 
+    WHERE semanas > 0
+    ORDER BY porcentaje_anual DESC LIMIT 1""")
+    resultado = cursor.fetchone()
+    conn.close()
+    print(f"La canción que tiene más porcentaje de tiempo anual, en el número uno, es {resultado['titulo']}, con {resultado['porcentaje_anual']:.2f} % .")
